@@ -41,6 +41,7 @@ def start():
 def terminate():
     for _ in range(processor_num):
         tasks_queue.put(None)
+    tasks_queue.join()
 
 def register(tasks):
     for task in tasks:

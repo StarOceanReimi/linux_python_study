@@ -29,15 +29,13 @@ def _confusion_code(length, r_str):
 
 class PromoCodeGenerator(object):
 
-    _codes = []
-
     def __init__(self, code_num, code_len=15, comments=None):
         self._code_len = code_len
         self._code_num = code_num
         self._r_str = comments
 
-    def _test_code(self, code):
-        return code in self._codes
+    def _test_code(self, code, code_collection):
+        return code in code_collection 
 
     def _gen_promo_code(self):
         r_str = self._r_str or _random_str(self._code_len)
@@ -45,12 +43,13 @@ class PromoCodeGenerator(object):
         return code
 
     def get_codes(self):
+        codes = []
         for x in xrange(self._code_num):
             code = self._gen_promo_code()
-            while self._test_code(code):
+            while self._test_code(code, codes):
                 code = self._gen_promo_code()
-            self._codes.append(code)
-        return self._codes
+            codes.append(code)
+        return codes
 
 if __name__ == '__main__':
     pcg = PromoCodeGenerator(50, 20, 'For old customer')

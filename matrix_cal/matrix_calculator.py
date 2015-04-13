@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import math
 import applogger
 import re
@@ -45,9 +46,9 @@ class ConsoleMatrixCalculator(object):
         def sub(m1, m2, i, j):
             v1 = m1[i][j]
             v2 = m2[i][j]
-            sum = v1 - v2
-            logger.debug("%d - %d = %d position (%d, %d)" % (v1, v2, sum, i, j))
-            return sum
+            dif = v1 - v2
+            logger.debug("%d - %d = %d position (%d, %d)" % (v1, v2, dif, i, j))
+            return dif
         return self.two_matrix_op(m1, m2, sub) 
 
     def matrix_multiply_constant(self, m1, constant):
@@ -84,8 +85,8 @@ class ConsoleMatrixCalculator(object):
         return self.two_matrix_op(m1, m2, multiply)
 
     def matrix_size(self, matrix):
-        assert len(matrix) > 0, "Matrix's row cant be NULL"
-        assert len(matrix[0]) > 0, "Matrix' column cant be NULL"
+        assert len(matrix) > 0, "Matrix's row cant be less than zero"
+        assert len(matrix[0]) > 0, "Matrix' column cant be less than zero"
         return len(matrix), len(matrix[0])
 
     def input_matrix(self):
@@ -103,7 +104,7 @@ class ConsoleMatrixCalculator(object):
                 line_array = self._parse_matrixline(line_data)
             except ValueError:
                 print "Errors are occurred when parsing your inputs"
-                print "probably your inputs have non-digits character"
+                print "probably your inputs have non-digit character"
                 print "please check it, and input again."
                 continue
 
@@ -128,13 +129,14 @@ class ConsoleMatrixCalculator(object):
                 continue
             self._storage._dicts[name] = matrix
             self._storage.save_to_disk()
+            print 'matrix "%s" has been saved.' % line_data.strip()
             return
 
     def list_saved_matrix(self):
         print "These are matrices has been saved in storage:"
         for k, m in self._storage._dicts.iteritems():
             if k.startswith("matrix:"):
-                print 'Matrix: "%s"' % k.split(":")[-1]
+                print 'Matrix: "%s"' % "".join(k.split(":")[1:])
                 self.print_matrix(m)
                 print ""
 
@@ -184,8 +186,57 @@ class ConsoleMatrixCalculator(object):
             negate = 1
         return int(max(minlog, maxlog)) + negate + 1 
 
+    def _get_default(self, name, default, options):
+        return default if not name in options else options[name]
+
+    def print_matrices_inline(self, *matrices, **options):
+        num = self._get_default('num', 3, options)
+        group_matrices = self._group_matrices(num, *matrices)
+        delim = self._get_default("delim", "\t", options)
+        place_holder = self._get_default('place_holder', " ", options)
+        newline = self._get_default("newline", '\n', options)
+        desc = self._get_default("desc", "", options)
+        for group in group_matrices:
+            mg_sizes = map(lambda x: self.matrix_size(x), group)
+            max_row = max(mg_sizes, key=lambda x:x[0])[0]
+            group_col = map(lambda x: x[1], mg_sizes)
+            for row in xrange(max_row):
+                for m in group:
+                    length = self._longest_numberlength(m)
+                    if row == 0 or row == max_row-1:
+                        self._std_write("- ")
+                    else:
+                        self._std_write("| ")
+                    for c in xrange(len(m[0])):
+                        if row >= len(m):
+                            self._std_write(place_holder)
+                        else:
+                            self._std_write(("%" + str(length) + "s ") % m[row][c])
+                    if row == 0 or row == max_row-1:
+                        self._std_write("-")
+                    else:
+                        self._std_write("|")
+                    self._std_write(delim)
+                    if desc:
+                        self._std_write(desc)
+                        desc = " " * len(desc)
+                    self._std_write(delim)
+                self._std_write(newline)
+            self._std_write(newline)
+
+    def _group_matrices(self, num, *matrices):
+        grouped = []
+        group = []
+        for i, m in enumerate(matrices):
+            if i != 0 and i % num == 0:
+                grouped.append(group)
+                group = []
+            group.append(m)
+        if group:
+            grouped.append(group)
+        return grouped
+
     def print_matrix(self, matrix):
-        """TODO: Needs to fix multiple Matrices displays in same row"""
         length = self._longest_numberlength(matrix)
         for i, arr in enumerate(matrix):
             if i == 0 or i == (len(matrix) - 1):
@@ -212,6 +263,7 @@ if __name__ == "__main__":
     """matrix calculator for python execise"""
     matrix = [[0,0,1,0], [1,2,-3,4],[2,1,4,0],[1,2,-3,0]]
     cmc = ConsoleMatrixCalculator()
+    cmc.print_matrices_inline(matrix, cmc.matrix_power(matrix, 4), desc=u" →  power 4  →"  )
 #    cmc.print_matrix(matrix)
 #    ret = cmc.matrix_power(matrix, 4)
 #    cmc.print_matrix(ret)
@@ -219,5 +271,10 @@ if __name__ == "__main__":
 #    inputs = cmc.input_matrix()
 #    cmc.save_matrix(inputs)
 #    cmc.list_saved_matrix()
-    em = cmc.get_matrix_byname("example15")
-    cmc.print_matrix(cmc.matrix_power(em, 4))
+#    em = cmc.get_matrix_byname("exec2")
+#    cmc.print_matrix(cmc.matrix_power(em, 2))
+#    cmc.print_matrix(cmc.matrix_power(em, 3))
+#    cmc.print_matrix(cmc.matrix_power(em, 4))
+#    cmc.print_matrix(cmc.matrix_power(em, 5))
+#    cmc.print_matrix(cmc.matrix_power(em, 6))
+#    cmc.print_matrix(cmc.matrix_power(em, 7))

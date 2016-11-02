@@ -7,7 +7,7 @@ filterwarnings('ignore', category=mc.Warning)
 
 dbname = 'py_exec'
 tblname = 'promotion'
-dbconfig = dict(host='localhost', user='qiuli', passwd='860226')
+dbconfig = dict(host='localhost', user='qiuli', passwd='******')
 def init_db():
     conn = mc.connect(**dbconfig)
     cursor = conn.cursor()
